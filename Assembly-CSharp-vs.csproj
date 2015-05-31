@@ -55,9 +55,11 @@
      <Compile Include="Assets\src\EchoParticle.cs" />
      <Compile Include="Assets\src\Emitter.cs" />
      <Compile Include="Assets\src\Enemy.cs" />
+     <Compile Include="Assets\src\HUD.cs" />
      <Compile Include="Assets\src\Map.cs" />
      <Compile Include="Assets\src\Player.cs" />
      <Compile Include="Assets\src\Scene.cs" />
+     <Compile Include="Assets\src\Shot.cs" />
      <Compile Include="Assets\src\Statuses\Status.cs" />
      <Compile Include="Assets\src\Statuses\StatusMap.cs" />
      <Compile Include="Assets\src\Steering.cs" />

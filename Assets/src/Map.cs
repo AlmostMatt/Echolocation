@@ -4,7 +4,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum Tile {EMPTY=0, WALL=1};
+public enum Tile {EMPTY=0, EMPTY2=8, WALL=1, SAFE=7};
 
 public class Map : MonoBehaviour {
 	public TextAsset tilemap;
@@ -38,18 +38,34 @@ public class Map : MonoBehaviour {
 
 	private void  ParseLayer (TileSet tileset, string[] data, int currentLayerID, int width, int height)
 	{
+		while (map.Count <= width) {
+			map.Add(new List<Tile>());
+		}
+		// assuming all layers have the same size
+		w = Mathf.Max (w,width);
+		h = Mathf.Max (h,height);
+
 		int dataIndex = 0;
 		//_currentLayerID = _currentLayerID * 10;
 		float z = currentLayerID * -10;
 		for (int i = 1; i <= height; i++) {
 			for (int j = 1; j <= width; j++) {
+				while (map[j].Count <= height) {
+					map[j].Add(Tile.EMPTY);
+				}
+				Vector2 tilePos = new Vector2(j, i);
 				int dataValue = int.Parse(data [dataIndex].ToString ().Trim ());
-				if (dataValue != 0 && dataValue != 3) {
-					Vector2 pos = new Vector2(j, -i); 
+				if (dataValue == 7 || dataValue == 5) {
+					setTile(tilePos, Tile.SAFE);
+				} else if (dataValue == 8) {
+					setTile(tilePos, Tile.EMPTY2);
+				}
+				if (dataValue != 0 && dataValue != 7 && dataValue != 3 && dataValue != 8) {
 					GameObject objectType = wallObj;
 					switch (dataValue) {
 					case 1:
 						objectType = wallObj;
+						setTile(tilePos, Tile.WALL);
 						break;
 					case 2:
 						objectType = emitterObj;
@@ -57,9 +73,15 @@ public class Map : MonoBehaviour {
 					case 4:
 						objectType = enemyObj;
 						break;
+					case 5:
+						objectType = playerObj;
+						break;
 					}
 					GameObject obj = Instantiate(objectType);
-					obj.transform.position = pos;
+					obj.transform.position = mapToGame(tilePos);
+					if (dataValue == 5) {
+						player = obj.GetComponent<Player>();
+					}
 				}
 				dataIndex++;
 			}
@@ -69,6 +91,7 @@ public class Map : MonoBehaviour {
 	private void ParseTilemap()
 	{
 		/* MODIFIED FROM UNITMX, NOT ORIGINALLY WRITTEN BY ME (some guy names PolCPP)*/
+		map = new List<List<Tile>>();
 
 		// We use the currentLayer ID to order them on the Z axis.
 		int currentLayerID = 0;
@@ -126,12 +149,6 @@ public class Map : MonoBehaviour {
 		level = levels[0];
 		enemies.Clear();
 
-		GameObject pO = Instantiate(playerObj);
-		pO.transform.parent = transform;
-		pO.transform.localPosition = new Vector2(4, -8);
-		player = pO.GetComponent<Player>();
-
-		map = new List<List<Tile>>();
 		ParseTilemap();
 
 		
@@ -281,4 +298,41 @@ public class Map : MonoBehaviour {
 	public List<Enemy> getEnemies() {
 		return enemies;
 	}
+
+	// grid coordinates, uses bresenham
+	public bool raycast(Vector2 t1, Vector2 t2, Tile hitTile) {
+		if (t1.x > t2.x) {
+			return raycast (t2, t1, hitTile);
+		}
+		int x1 = (int) t1.x, x2 = (int) t2.x;
+		int y1 = (int) t1.y, y2 = (int) t2.y;
+		int y;
+		if (x1 == x2) {
+			for (y = Mathf.Min (y1, y2); y<=Mathf.Max (y1,y2);++y) {
+				if (getTile(x1,y) == hitTile) {
+					return true;
+				}
+			}
+			return false;
+		}
+		float dx = x2-x1, dy=y2-y1;
+		float yoffset = 0f;
+		float deltaoffset = Mathf.Abs (dy / dx);
+		y = y1;
+		for (int x = x1; x <= x2; ++x) {
+			if (getTile(x,y) == hitTile) {
+				return true;
+			}
+			yoffset += deltaoffset;
+			while (yoffset >= 0.5f) {
+				if (getTile(x,y) == hitTile) {
+					return true;
+				}
+				y += (int) Mathf.Sign(y2 - y1);
+				yoffset -= 1f;
+			}
+		}
+		return false;
+	}
+
 }

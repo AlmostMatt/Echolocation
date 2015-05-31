@@ -4,13 +4,21 @@ using System.Collections;
 public class Player : MonoBehaviour, Actor {
 	private int ECHO = 0;
 	private int ATTACK = 1;
-
+	
 	public GameObject explosionObj;
+	public GameObject bulletObj;
 
 	private ActionMap actionMap;
 	private StatusMap statusMap;
 	private Rigidbody2D rb;
 	float facingAngle = 0f;
+
+	public bool safe;
+	private Vector3 respawnPoint;
+	private Transform gun;
+
+	private float health;
+	private float maxHealth = 2f;
 	
 	void Awake() {
 		statusMap = new StatusMap(this);
@@ -18,6 +26,8 @@ public class Player : MonoBehaviour, Actor {
 		actionMap.add(ECHO, new Ability(0.5f));
 		actionMap.add(ATTACK, new Ability(0.3f));
 		rb = GetComponent<Rigidbody2D>();
+		respawnPoint = transform.position;
+		gun = transform.FindChild("gun");
 	}
 
 	// Use this for initialization
@@ -50,11 +60,30 @@ public class Player : MonoBehaviour, Actor {
 		if (Input.GetMouseButton(0)) {
 			attack(mouse);
 		}
+
+		safe = (Scene.getTile(transform.position) == Tile.SAFE);
+		if (safe) {
+			health = maxHealth;
+			// respawn at center of tile
+			respawnPoint = Scene.get ().map.mapToGame(Scene.get ().map.gameToMap(transform.position));
+		}
 	}
 
 	private void attack(Vector2 mouse) {
 		if (actionMap.ready(ATTACK)) {
 			actionMap.use(ATTACK, null);
+			GameObject shot = Instantiate(bulletObj);
+			shot.transform.position = gun.position;
+			shot.transform.rotation = gun.rotation;
+			int WALL_MASK = 1 << 10;
+			float shotRange = 15f;
+			RaycastHit2D hit = Physics2D.Raycast(gun.position, gun.right, shotRange, WALL_MASK);
+			if (hit.collider != null) {
+				shotRange = hit.distance;
+			}
+			shot.transform.localScale = new Vector3(shotRange, 1f, 1f);
+
+			/*
 			GameObject expl = Instantiate(explosionObj);
 			expl.transform.position = mouse;
 			float ERAD = 0.8f;
@@ -63,6 +92,25 @@ public class Player : MonoBehaviour, Actor {
 					e.damage(1f);
 				}
 			}
+			*/
+			HUD.setText("Player is at " + transform.position, 2f);
+		}
+	}
+
+	public void damage(float amt) {
+		// sound?
+		if (!statusMap.has(State.INVULNERABLE)) {
+			statusMap.add (new Status(State.INVULNERABLE), 0.8f);
+			HUD.takeDamage();
+			health -= amt;
+		}
+		if (health <= 0f) {
+			health = maxHealth;
+			// health?
+			// delayed respawn coroutine?
+			transform.position = respawnPoint;
+			// respawn all enemies?
+			// or at least reset them to full health and their spawn positions
 		}
 	}
 

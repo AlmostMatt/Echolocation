@@ -64,13 +64,14 @@ public class Scene : MonoBehaviour {
 		cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
 	}
 
-	public static void echo(Vector3 echoPos, float echoSpeed=7f, float duration=5f, float fadeTime=0.7f, int numP=64) {
+	public static void echo(Vector3 echoPos, float echoSpeed=7f, float range=15f, float fadeTime=0.7f, int numP=64) {
 		for (int n =0; n<numP; ++n) {
+		//int n = 0;
 			float a = n * 2 * Mathf.PI / numP;
 			GameObject echoParticle = Instantiate(singleton.echoObj);
 			echoParticle.transform.position = echoPos;
 			EchoParticle echo = echoParticle.GetComponent<EchoParticle>();
-			echo.init(a, 2 * Mathf.PI / numP, echoSpeed, duration, fadeTime);
+			echo.init(a, 2 * Mathf.PI / numP, echoSpeed, range, fadeTime);
 			get().echos.Add(echo);
 		}
 	}
@@ -92,5 +93,13 @@ public class Scene : MonoBehaviour {
 		return ray.origin;
 	}
 
+	public static Tile getTile(Vector2 gamePos) {
+		Map map = get().map;
+		return map.getTile(map.gameToMap(gamePos));
+	}
 
+	public static bool tileRaycast(Vector2 gamePos1, Vector2 gamePos2, Tile hitTile) {
+		Map map = get().map;
+		return map.raycast(map.gameToMap(gamePos1), map.gameToMap(gamePos2), hitTile);
+	}
 }

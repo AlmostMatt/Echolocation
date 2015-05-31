@@ -2,12 +2,15 @@
 using System.Collections;
 
 public class EchoParticle : MonoBehaviour {
-	public float duration = 1f;
+	public float minRad = 0f;
+	public float maxRad = 35f;
+
 	public bool dead = false;
 
-	private float radius;
-	private float arc; // radians
-	private float speed;
+	private float prevradius;
+	public float radius;
+	public float arc; // radians
+	public float speed;
 
 	private Transform quad;
 	private Mesh mesh;
@@ -16,9 +19,17 @@ public class EchoParticle : MonoBehaviour {
 	private float collisionRadius = -1f;
 
 	private int frame = 0;
-	private float fadeTime;
+	public float fadeTime;
 
-	public void init(float direction, float arcsize, float echospeed, float dur=5f, float fade=0.7f) {
+	public Color col;
+	//private static Color normalCol = new Color(1f, 1f, 1f, 0.25f);
+	//private static Color dirtCol = new Color(1f, 0.7f, 0.1f, 0.25f);
+	//private static Color safeCol = new Color(0.4f, 1f, 0.4f, 0.25f);
+	private static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f);
+	private static Color dirtCol = new Color(0.369f, 0.216f, 0.086f, 0.25f);
+	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f);
+
+	public void init(float direction, float arcsize, float echospeed, float range=35f, float fade=0.7f) {
 		radius = 0f;
 		arc = arcsize;
 		speed = echospeed;
@@ -28,11 +39,25 @@ public class EchoParticle : MonoBehaviour {
 		transform.localEulerAngles = new Vector3(0f, 0f, Mathf.Rad2Deg * direction);
 		Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
 		echoRB.velocity = v;
-		duration = dur;
+		maxRad = range;
+		Color initCol = getTileColor(Scene.getTile(transform.position));
+		col = initCol;
+		meshRenderer.material.SetColor("_TintColor", initCol);
+	}
+
+	/* ALTERNATIVE TO INIT : RESUME */
+	public void resume(EchoParticle previous, Color newCol) {
+		// assume velocity/fadeTime/etc copied since they are public
+		minRad = previous.radius;
+		radius = previous.radius;
+		maxRad = previous.maxRad;
+		col = newCol;
+		meshRenderer.material.SetColor("_TintColor", newCol);
+		transform.GetComponent<Rigidbody2D>().velocity = previous.GetComponent<Rigidbody2D>().velocity;
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		quad = transform.FindChild("quad");
 		mesh = quad.GetComponent<MeshFilter>().mesh;
 		initMesh();
@@ -44,22 +69,28 @@ public class EchoParticle : MonoBehaviour {
 		frame++;
 		if (!dead) {
 			float len = speed * fadeTime;
-			float r1 = Mathf.Max(0f, radius - len);
-			float r2 = radius;
-			float a1 = Mathf.Max(0f, 1f - (radius/len));
+			float r1 = Mathf.Max(minRad, radius - len);
+			float r2 = radius;//Mathf.Min(radius, maxRad);
+			float a1 = Mathf.Max(0f, 1f - ((radius - minRad)/len));
 			float a2 = 1f;
 			if (collisionRadius != -1f) {
 				r2 = collisionRadius;
 				a2 = (collisionRadius - r1) / (radius - r1);
 			}
 			
-			if (collisionRadius != -1f && collisionRadius <= r1) {
+			if (r2 <= r1) {
 				removeThis();
 			} else {
+				Tile t = Scene.getTile(transform.position);
+				Color newcol = getTileColor(t);
+				if (radius < maxRad && newcol != col && collisionRadius == -1f) {
+					split(newcol);
+					maxRad = radius;
+				}
 				if (frame %2 == 0) {
-					updateMesh((r2 - r1), r1 * arc, r2 * arc, 0.5f * a1, a2);
+					updateMesh((r2 - r1), r1 * arc, r2 * arc, a1, a2);
 				} else {
-					updateMesh((r2 - r1), r1 * arc, r2 * arc, 0.5f * a1, a2);
+					updateMesh((r2 - r1), r1 * arc, r2 * arc, a1, a2);
 				}
 			}
 			/*
@@ -80,6 +111,24 @@ public class EchoParticle : MonoBehaviour {
 			imgrenderer.color = new Color(1f, 1f, 1f, alpha);
 			*/
 		}
+	}
+
+	public static Color getTileColor(Tile t) {
+		switch (t) {
+		case Tile.SAFE:
+			return safeCol;
+		case Tile.EMPTY2:
+			return dirtCol;
+		case Tile.EMPTY:
+		default:
+			return normalCol;
+		}
+	}
+
+	private void split(Color newcol) {
+		GameObject newEcho = Instantiate(gameObject);
+		EchoParticle newEchoParticle = newEcho.GetComponent<EchoParticle>();
+		newEchoParticle.resume(this, newcol);
 	}
 
 	void initMesh() {
@@ -124,12 +173,15 @@ public class EchoParticle : MonoBehaviour {
 	}
 
 	void FixedUpdate() {
-		duration -= Time.fixedDeltaTime;
-		if (duration <= 0f) {
-			dead = true;
+		if (dead && gameObject != null) {
 			Destroy(gameObject);
-		} 
+		}
 		radius += Time.fixedDeltaTime * speed;
+		if (radius >= maxRad && collisionRadius == -1f) {
+			collisionRadius = radius;
+			Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
+			echoRB.velocity = new Vector3();
+		}
 	}
 
 	private void removeThis() {

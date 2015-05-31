@@ -298,7 +298,7 @@ MonoBehaviour:
   explosionObj: {fileID: 191304, guid: b893482cbbd526645a072d6a33327b6e, type: 2}
   bulletObj: {fileID: 171002, guid: 295f6ff99fc449043ba1d98b8a09743d, type: 2}
   shootSound: {fileID: 8300000, guid: 390016c6bd5f33a468525cff93115c3d, type: 3}
-  painSound: {fileID: 8300000, guid: 27b03f37880099d4b89e0c932ec7dcd6, type: 3}
+  painSound: {fileID: 8300000, guid: ac8787a159e1d37448deae9416022fa2, type: 3}
   safe: 0
 --- !u!212 &21256014
 SpriteRenderer:

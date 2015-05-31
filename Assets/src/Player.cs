@@ -23,7 +23,7 @@ public class Player : MonoBehaviour, Actor {
 	private AudioSource gunAudio;
 
 	private float health;
-	private float maxHealth = 2f;
+	private float maxHealth = 3f;
 
 	// for help text
 	private bool hasMovedVertically;

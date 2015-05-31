@@ -35,7 +35,7 @@ public class StatusMap
 			statusMap.Remove(state);
 		}
 	}
-
+	
 	public void add(Status s, float duration) {
 		if (has (s.type)) {
 			statusMap[s.type].duration += duration;
@@ -43,6 +43,13 @@ public class StatusMap
 			s.duration = duration;
 			statusMap[s.type] = s;
 			s.begin(owner);
+		}
+	}
+	
+	public void remove(State s) {
+		if (has (s)) {
+			statusMap[s].expire(owner);
+			statusMap.Remove(s);
 		}
 	}
 

@@ -8,6 +8,9 @@ public class Player : MonoBehaviour, Actor {
 	public GameObject explosionObj;
 	public GameObject bulletObj;
 
+	public AudioClip shootSound;
+	public AudioClip painSound;
+
 	private ActionMap actionMap;
 	private StatusMap statusMap;
 	private Rigidbody2D rb;
@@ -16,9 +19,18 @@ public class Player : MonoBehaviour, Actor {
 	public bool safe;
 	private Vector3 respawnPoint;
 	private Transform gun;
+	private AudioSource playerAudio;
+	private AudioSource gunAudio;
 
 	private float health;
 	private float maxHealth = 2f;
+
+	// for help text
+	private bool hasMovedVertically;
+	private bool hasMovedHorizontally;
+	private int shotsFired = 0;
+	private bool dangerMessaged = false;
+	private bool safetyMessaged = false;
 	
 	void Awake() {
 		statusMap = new StatusMap(this);
@@ -28,11 +40,13 @@ public class Player : MonoBehaviour, Actor {
 		rb = GetComponent<Rigidbody2D>();
 		respawnPoint = transform.position;
 		gun = transform.FindChild("gun");
+		playerAudio = GetComponent<AudioSource>();
+		gunAudio = gun.GetComponent<AudioSource>();
 	}
 
 	// Use this for initialization
 	void Start () {
-	
+		respawnPoint = transform.position;
 	}
 	
 	// Update is called once per frame
@@ -41,25 +55,33 @@ public class Player : MonoBehaviour, Actor {
 		float MAXV = 5f;
 		float ROTV = 4 * Mathf.PI;
 
-		Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-		Vector2 desiredV = MAXV * input;
-		rb.AddForce(ACCEL * (desiredV - rb.velocity));
-		if (rb.velocity.sqrMagnitude > MAXV * MAXV) {
-			rb.velocity = MAXV * rb.velocity.normalized;
-		} else if (rb.velocity.sqrMagnitude < 1f) {
+		if (!statusMap.has(State.DEAD)) {
+			Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+			if (input.x != 0f) {
+				hasMovedHorizontally = true;
+			}
+			if (input.y != 0f) {
+				hasMovedVertically = true;
+			}
+			Vector2 desiredV = MAXV * input;
+			rb.AddForce(ACCEL * (desiredV - rb.velocity));
+			if (rb.velocity.sqrMagnitude > MAXV * MAXV) {
+				rb.velocity = MAXV * rb.velocity.normalized;
+			} else if (rb.velocity.sqrMagnitude < 1f) {
+			}
+			echolocate();
+			// look at mouse
+			Vector2 mouse = Scene.get().getWorldMousePos();
+			turnToward(mouse, ROTV * Time.deltaTime);
+			if (Input.GetMouseButton(0)) {
+				attack(mouse);
+			}
+		} else {
+			HUD.takeDamage();
 		}
-		echolocate();
 
 		actionMap.update(Time.deltaTime);
 		statusMap.update(Time.deltaTime);
-
-		// look at mouse
-		Vector2 mouse = Scene.get().getWorldMousePos();
-		turnToward(mouse, ROTV * Time.deltaTime);
-
-		if (Input.GetMouseButton(0)) {
-			attack(mouse);
-		}
 
 		safe = (Scene.getTile(transform.position) == Tile.SAFE);
 		if (safe) {
@@ -67,10 +89,32 @@ public class Player : MonoBehaviour, Actor {
 			// respawn at center of tile
 			respawnPoint = Scene.get ().map.mapToGame(Scene.get ().map.gameToMap(transform.position));
 		}
+		/* DIALOG / HELP */
+		
+		if (statusMap.has(State.DEAD)) {
+			HUD.setText("", 0f);
+		} else if (!hasMovedHorizontally || !hasMovedVertically) {
+			HUD.setText("Move with WASD", 1f);
+		} else if (shotsFired < 2) {
+			if (!HUD.hasText()) {
+				HUD.setText("Shoot with the mouse", 1f);
+			}
+		} else if (!dangerMessaged || !safetyMessaged) {
+			if (!dangerMessaged && !HUD.hasText() && !safe) {
+				HUD.setText("Watch out for moving shapes!", 3f);
+				dangerMessaged = true;
+			}
+			if (!safetyMessaged && !HUD.hasText() && safe) {
+				HUD.setText("These gray areas are safe.", 3f);
+				safetyMessaged = true;
+			}
+		}
 	}
 
 	private void attack(Vector2 mouse) {
 		if (actionMap.ready(ATTACK)) {
+			gunAudio.PlayOneShot(shootSound, 0.5f);
+			++shotsFired;
 			actionMap.use(ATTACK, null);
 			GameObject shot = Instantiate(bulletObj);
 			shot.transform.position = gun.position;
@@ -93,25 +137,33 @@ public class Player : MonoBehaviour, Actor {
 				}
 			}
 			*/
-			HUD.setText("Player is at " + transform.position, 2f);
 		}
 	}
 
 	public void damage(float amt) {
+		if (statusMap.has(State.DEAD)) { return;}
 		// sound?
 		if (!statusMap.has(State.INVULNERABLE)) {
+			playerAudio.PlayOneShot(painSound, 1f);
 			statusMap.add (new Status(State.INVULNERABLE), 0.8f);
 			HUD.takeDamage();
 			health -= amt;
 		}
 		if (health <= 0f) {
-			health = maxHealth;
-			// health?
-			// delayed respawn coroutine?
-			transform.position = respawnPoint;
-			// respawn all enemies?
-			// or at least reset them to full health and their spawn positions
+			statusMap.add(new Status(State.DEAD), 1000f);
+			GetComponent<Rigidbody2D>().velocity = new Vector3();
+			// delayed respawn coroutine
+			Invoke("respawn", 1f);
 		}
+	}
+
+	private void respawn() {
+		health = maxHealth;
+		transform.position = respawnPoint;
+		foreach (Enemy e in Scene.getEnemies()) {
+			e.reset();
+		}
+		statusMap.remove(State.DEAD);
 	}
 
 	private void echolocate() {

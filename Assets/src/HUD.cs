@@ -30,7 +30,10 @@ public class HUD : MonoBehaviour {
 	public static void takeDamage() {
 		singleton.damageAlpha = 1f;
 	}
-	
+	public static bool hasText() {
+		return singleton.textDuration > 0f;
+	}
+
 	public static void setText(string message, float duration) {
 		singleton.helpGroup.alpha = 1f;
 		if (singleton.helpText.text == message) {

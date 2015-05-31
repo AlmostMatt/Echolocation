@@ -1,7 +1,7 @@
 using System;
 
 // TODO: refactor this to allow superclassing instead of a case statement
-public enum State {ANIMATION, STUNNED, INVULNERABLE};
+public enum State {ANIMATION, STUNNED, INVULNERABLE, DEAD};
 
 public class Status
 {

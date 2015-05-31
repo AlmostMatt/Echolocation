@@ -26,7 +26,8 @@ public class EchoParticle : MonoBehaviour {
 	//private static Color dirtCol = new Color(1f, 0.7f, 0.1f, 0.25f);
 	//private static Color safeCol = new Color(0.4f, 1f, 0.4f, 0.25f);
 	private static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f);
-	private static Color dirtCol = new Color(0.369f, 0.216f, 0.086f, 0.25f);
+	private static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f);
+	private static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f);
 	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f);
 
 	public void init(float direction, float arcsize, float echospeed, float range=35f, float fade=0.7f) {
@@ -114,12 +115,15 @@ public class EchoParticle : MonoBehaviour {
 	}
 
 	public static Color getTileColor(Tile t) {
+		//DIRT=0, SAND=8, STONE=2
 		switch (t) {
 		case Tile.SAFE:
 			return safeCol;
-		case Tile.EMPTY2:
-			return dirtCol;
-		case Tile.EMPTY:
+		case Tile.SAND:
+			return sandCol;
+		case Tile.STONE:
+			return stoneCol;
+		case Tile.DIRT:
 		default:
 			return normalCol;
 		}

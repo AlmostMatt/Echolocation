@@ -4,7 +4,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum Tile {EMPTY=0, EMPTY2=8, WALL=1, SAFE=7};
+public enum Tile {DIRT=0, SAND=8, STONE=2, WALL=1, SAFE=7};
 
 public class Map : MonoBehaviour {
 	public TextAsset tilemap;
@@ -51,25 +51,26 @@ public class Map : MonoBehaviour {
 		for (int i = 1; i <= height; i++) {
 			for (int j = 1; j <= width; j++) {
 				while (map[j].Count <= height) {
-					map[j].Add(Tile.EMPTY);
+					map[j].Add(Tile.DIRT);
 				}
 				Vector2 tilePos = new Vector2(j, i);
 				int dataValue = int.Parse(data [dataIndex].ToString ().Trim ());
-				if (dataValue == 7 || dataValue == 5) {
+				if (dataValue == 7) {
 					setTile(tilePos, Tile.SAFE);
+				} else if (dataValue == 2) {
+					setTile(tilePos, Tile.STONE);
 				} else if (dataValue == 8) {
-					setTile(tilePos, Tile.EMPTY2);
-				}
-				if (dataValue != 0 && dataValue != 7 && dataValue != 3 && dataValue != 8) {
+					setTile(tilePos, Tile.SAND);
+				} else if (   dataValue == 1
+				           || dataValue == 5
+				           || dataValue == 4
+				           ) {
 					GameObject objectType = wallObj;
 					switch (dataValue) {
 					case 1:
 						objectType = wallObj;
 						setTile(tilePos, Tile.WALL);
 						break;
-					case 2:
-						objectType = emitterObj;
-						break;	
 					case 4:
 						objectType = enemyObj;
 						break;
@@ -254,7 +255,7 @@ public class Map : MonoBehaviour {
 	
 	public bool isWalkable(Tile tile) {
 		// consider buildings water for now since they are where boats spawn
-		return tile == Tile.EMPTY;
+		return tile != Tile.WALL;
 	}
 	
 	public bool isWall(Tile tile) {

@@ -4,18 +4,26 @@ using System.Collections;
 public class Enemy : Steering {
 
 	public bool dead = false;
-	private float health = 2f;
+	private float health;
+	private float maxHealth = 2f;
+	private Vector3 spawnPos;
 
 	void Awake() {
-		MAXV = 3f;
+		MAXV = 2.5f;
 		ACCEL = 10f;
+	}
+
+	void Start() {
+		spawnPos = transform.position;
+		health = maxHealth;
+		base.Start();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		Player player = Scene.getPlayer();
 
-		float VISION = 10f;
+		float VISION = 12f;
 		Vector2 offset =(player.transform.position - transform.position);
 		float dist = offset.sqrMagnitude;
 		if (!player.safe && dist < VISION * VISION) {
@@ -44,5 +52,10 @@ public class Enemy : Steering {
 			dead = true;
 			Destroy(gameObject);
 		}
+	}
+
+	public void reset() {
+		transform.position = spawnPos;
+		health = maxHealth;
 	}
 }

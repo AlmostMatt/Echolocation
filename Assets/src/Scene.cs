@@ -64,7 +64,7 @@ public class Scene : MonoBehaviour {
 		cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
 	}
 
-	public static void echo(Vector3 echoPos, float echoSpeed=7f, float range=15f, float fadeTime=0.7f, int numP=64) {
+	public static void echo(Vector3 echoPos, float echoSpeed=7f, float range=15f, float fadeTime=0.7f, int numP=48) {
 		for (int n =0; n<numP; ++n) {
 		//int n = 0;
 			float a = n * 2 * Mathf.PI / numP;

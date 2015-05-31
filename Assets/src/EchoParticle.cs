@@ -20,6 +20,10 @@ public class EchoParticle : MonoBehaviour {
 
 	private int frame = 0;
 	public float fadeTime;
+	public Vector3 origin;
+	public EchoParticle successor = null;
+	public EchoParticle precedent = null;
+	private bool hasSuccessor = false;
 
 	public Color col;
 	//private static Color normalCol = new Color(1f, 1f, 1f, 0.25f);
@@ -29,6 +33,8 @@ public class EchoParticle : MonoBehaviour {
 	private static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f);
 	private static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f);
 	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f);
+
+	private Rigidbody2D rb;
 
 	public void init(float direction, float arcsize, float echospeed, float range=35f, float fade=0.7f) {
 		radius = 0f;
@@ -44,17 +50,32 @@ public class EchoParticle : MonoBehaviour {
 		Color initCol = getTileColor(Scene.getTile(transform.position));
 		col = initCol;
 		meshRenderer.material.SetColor("_TintColor", initCol);
+		origin = transform.position;
 	}
 
 	/* ALTERNATIVE TO INIT : RESUME */
 	public void resume(EchoParticle previous, Color newCol) {
+		speed = previous.speed;
+		transform.position = previous.transform.position;
+		transform.rotation = previous.transform.rotation;
+
 		// assume velocity/fadeTime/etc copied since they are public
-		minRad = previous.radius;
+		origin = previous.origin;
+		minRad = (transform.position - origin).magnitude;
 		radius = previous.radius;
 		maxRad = previous.maxRad;
+		//
+		fadeTime = previous.fadeTime;
+		arc = previous.arc;
+		dead = false;
+		previous.successor = this;
+		precedent = previous;
+		collisionRadius = -1f;
+		frame = 0;
+		//
 		col = newCol;
 		meshRenderer.material.SetColor("_TintColor", newCol);
-		transform.GetComponent<Rigidbody2D>().velocity = previous.GetComponent<Rigidbody2D>().velocity;
+		rb.velocity = previous.GetComponent<Rigidbody2D>().velocity;
 	}
 
 	// Use this for initialization
@@ -63,6 +84,7 @@ public class EchoParticle : MonoBehaviour {
 		mesh = quad.GetComponent<MeshFilter>().mesh;
 		initMesh();
 		meshRenderer = quad.GetComponent<MeshRenderer>();
+		rb = GetComponent<Rigidbody2D>();
 	}
 	
 	// Update is called once per frame
@@ -80,19 +102,18 @@ public class EchoParticle : MonoBehaviour {
 			}
 			
 			if (r2 <= r1) {
-				removeThis();
-			} else {
-				Tile t = Scene.getTile(transform.position);
-				Color newcol = getTileColor(t);
-				if (radius < maxRad && newcol != col && collisionRadius == -1f) {
-					split(newcol);
-					maxRad = radius;
-				}
-				if (frame %2 == 0) {
-					updateMesh((r2 - r1), r1 * arc, r2 * arc, a1, a2);
+				// THIS IS A HACK TO RESOLVE A BUG WHEREIN SOMETHING IS DELETED BEFORE ITS PREDECESSOR
+				// SOMEHOW THINGS GET INTO PERMANENT COLLISION THE MOMENT THEY SPAWN, EVEN IN EMPTY SPACE.
+				// VERY STRANGE. (collisions on frame 0)
+				if (precedent != null) {
+					//Debug.Log("r2: " + r2 + ", r1: " + r1 + ", spd: " + speed + ", coll: " + collisionRadius + ", frame: " + frame +", minRad: " + minRad + ", maxRad: " + maxRad);
 				} else {
-					updateMesh((r2 - r1), r1 * arc, r2 * arc, a1, a2);
+					removeThis();
 				}
+			} else {
+				//if (frame %2 == 0) {
+				updateMesh((r2 - r1), r1 * arc, r2 * arc, a1, a2);
+				//}
 			}
 			/*
 			if (collisionRadius == -1f) {
@@ -130,7 +151,8 @@ public class EchoParticle : MonoBehaviour {
 	}
 
 	private void split(Color newcol) {
-		GameObject newEcho = Instantiate(gameObject);
+		hasSuccessor = true;
+		GameObject newEcho = Instantiate(Scene.get ().echoObj);
 		EchoParticle newEchoParticle = newEcho.GetComponent<EchoParticle>();
 		newEchoParticle.resume(this, newcol);
 	}
@@ -181,10 +203,19 @@ public class EchoParticle : MonoBehaviour {
 			Destroy(gameObject);
 		}
 		radius += Time.fixedDeltaTime * speed;
+		
+		Tile t = Scene.getTile(transform.position);
+		Color newcol = getTileColor(t);
+		if (t != Tile.WALL && radius < maxRad && newcol != col && collisionRadius == -1f) {
+			split(newcol);
+			maxRad = radius;
+			rb.velocity = new Vector3();
+			collisionRadius = radius;
+		}
+
 		if (radius >= maxRad && collisionRadius == -1f) {
 			collisionRadius = radius;
-			Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
-			echoRB.velocity = new Vector3();
+			rb.velocity = new Vector3();
 		}
 	}
 
@@ -193,18 +224,8 @@ public class EchoParticle : MonoBehaviour {
 		Destroy(gameObject);
 	}
 
-	void OnCollision2D(Collision2D coll) {
-		foreach (ContactPoint2D contact in coll.contacts) {
-			Debug.Log(contact.normal);
-		}
-		collisionRadius = radius;
-		Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
-		//echoRB.velocity = new Vector3();
-	}
-
 	void OnTriggerEnter2D(Collider2D other) {
 		collisionRadius = radius;
-		Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
-		echoRB.velocity = new Vector3();
+		rb.velocity = new Vector3();
 	}
 }

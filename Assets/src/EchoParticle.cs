@@ -9,9 +9,6 @@ public class EchoParticle : MonoBehaviour {
 	private float arc; // radians
 	private float speed;
 
-	private Transform imgTransform;
-	private SpriteRenderer imgrenderer;
-	private TrailRenderer trailrenderer;
 	private Transform quad;
 	private Mesh mesh;
 	private MeshRenderer meshRenderer;
@@ -19,26 +16,23 @@ public class EchoParticle : MonoBehaviour {
 	private float collisionRadius = -1f;
 
 	private int frame = 0;
+	private float fadeTime;
 
-	public void init(float direction, float arcsize, float echospeed) {
+	public void init(float direction, float arcsize, float echospeed, float dur=5f, float fade=0.7f) {
 		radius = 0f;
 		arc = arcsize;
 		speed = echospeed;
+		fadeTime = fade;
 
 		Vector2 v = echospeed * new Vector2(Mathf.Cos(direction), Mathf.Sin(direction));
 		transform.localEulerAngles = new Vector3(0f, 0f, Mathf.Rad2Deg * direction);
 		Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
 		echoRB.velocity = v;
-		duration = 5f;
+		duration = dur;
 	}
 
 	// Use this for initialization
 	void Start () {
-		imgTransform = transform.FindChild("img");
-		imgrenderer = imgTransform.GetComponent<SpriteRenderer>();
-		trailrenderer = transform.FindChild("trail").GetComponent<TrailRenderer>();
-		imgrenderer.enabled = false;
-		trailrenderer.enabled = false;
 		quad = transform.FindChild("quad");
 		mesh = quad.GetComponent<MeshFilter>().mesh;
 		initMesh();
@@ -49,7 +43,7 @@ public class EchoParticle : MonoBehaviour {
 	void Update () {
 		frame++;
 		if (!dead) {
-			float len = speed * 0.7f;
+			float len = speed * fadeTime;
 			float r1 = Mathf.Max(0f, radius - len);
 			float r2 = radius;
 			float a1 = Mathf.Max(0f, 1f - (radius/len));

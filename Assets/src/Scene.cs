@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 public class Scene : MonoBehaviour {
 
+	public GameObject echoObj;
+
 	public Map map;
-	private List<EchoParticle> echos;
+	public List<EchoParticle> echos;
 	private static Scene singleton;
 
 	public Player player;
@@ -62,8 +64,15 @@ public class Scene : MonoBehaviour {
 		cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
 	}
 
-	public void addEcho(EchoParticle p) {
-		echos.Add(p);
+	public static void echo(Vector3 echoPos, float echoSpeed=7f, float duration=5f, float fadeTime=0.7f, int numP=64) {
+		for (int n =0; n<numP; ++n) {
+			float a = n * 2 * Mathf.PI / numP;
+			GameObject echoParticle = Instantiate(singleton.echoObj);
+			echoParticle.transform.position = echoPos;
+			EchoParticle echo = echoParticle.GetComponent<EchoParticle>();
+			echo.init(a, 2 * Mathf.PI / numP, echoSpeed, duration, fadeTime);
+			get().echos.Add(echo);
+		}
 	}
 
 	public static Scene get() {

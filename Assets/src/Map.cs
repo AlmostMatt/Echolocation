@@ -1,12 +1,18 @@
 ﻿using UnityEngine;
+using System.Xml;
+using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 
 public enum Tile {EMPTY=0, WALL=1};
 
 public class Map : MonoBehaviour {
+	public TextAsset tilemap;
+
 	public GameObject wallObj;
 	public GameObject playerObj;
 	public GameObject enemyObj;
+	public GameObject emitterObj;
 
 	public GameObject[] levels;
 
@@ -30,23 +36,110 @@ public class Map : MonoBehaviour {
 		
 	}
 
+	private void  ParseLayer (TileSet tileset, string[] data, int currentLayerID, int width, int height)
+	{
+		int dataIndex = 0;
+		//_currentLayerID = _currentLayerID * 10;
+		float z = currentLayerID * -10;
+		for (int i = 1; i <= height; i++) {
+			for (int j = 1; j <= width; j++) {
+				int dataValue = int.Parse(data [dataIndex].ToString ().Trim ());
+				if (dataValue != 0 && dataValue != 3) {
+					Vector2 pos = new Vector2(j, -i); 
+					GameObject objectType = wallObj;
+					switch (dataValue) {
+					case 1:
+						objectType = wallObj;
+						break;
+					case 2:
+						objectType = emitterObj;
+						break;	
+					case 4:
+						objectType = enemyObj;
+						break;
+					}
+					GameObject obj = Instantiate(objectType);
+					obj.transform.position = pos;
+				}
+				dataIndex++;
+			}
+		}
+	}
+
+	private void ParseTilemap()
+	{
+		/* MODIFIED FROM UNITMX, NOT ORIGINALLY WRITTEN BY ME (some guy names PolCPP)*/
+
+		// We use the currentLayer ID to order them on the Z axis.
+		int currentLayerID = 0;
+
+		TileSet tileset = null;		
+
+		// What we're doing here is simple: Load the xml file from the attributes
+		// And start parsing. Once it finds a tileset element it creates the tileset object
+		// (it will be the first thing it encounters)
+		XmlDocument xmldoc = new XmlDocument ();
+		xmldoc.Load (new StringReader (tilemap.text)); 
+		XmlNodeList nodelist = xmldoc.DocumentElement.ChildNodes;		
+		foreach (XmlNode outerNode in nodelist) {
+			switch (outerNode.Name) {
+			case "tileset":
+				// Basically we just grab the data from the xml and build a Tileset object
+				// To avoid problems with the collision tileset since we only store one tileset 
+				// we ignore anything with Collision inside.  
+				if (outerNode.Attributes ["name"].InnerText.IndexOf ("Collision") == -1) {
+					XmlNode imageNode = outerNode.SelectSingleNode ("image");
+					int firstGID = int.Parse (outerNode.Attributes ["firstgid"].InnerText);
+					int width = int.Parse (outerNode.Attributes ["tilewidth"].InnerText);
+					int height = int.Parse (outerNode.Attributes ["tileheight"].InnerText);
+					int imageWidth = int.Parse (imageNode.Attributes ["width"].InnerText);
+					int imageheight = int.Parse (imageNode.Attributes ["height"].InnerText);
+					int tileBorder = 0;
+					if (outerNode.Attributes ["spacing"] != null)
+						tileBorder = int.Parse (outerNode.Attributes ["spacing"].InnerText);						
+					tileset = new TileSet (firstGID, width, height, imageWidth, imageheight, tileBorder);	
+				}
+				break;
+			case "layer":
+				// First we build the layer object and then just call the renderVertices 
+				// renderUV and renderTriangles to build our textured mesh. 
+				// Finally we store the vertexcount and +1 to the currentLayerID. 
+				// like in the tileset, we avoid using the "collision_" layers since 
+				// they only contain collision info
+				if (outerNode.Attributes ["name"].InnerText.IndexOf ("collision_") == -1) {
+					XmlNode dataNode = outerNode.SelectSingleNode ("data");
+					int layerWidth = int.Parse (outerNode.Attributes ["width"].InnerText);
+					int layerHeight = int.Parse (outerNode.Attributes ["height"].InnerText);
+					string csvData = dataNode.InnerText;
+					ParseLayer(tileset, csvData.Split(','), currentLayerID, layerWidth, layerHeight);
+				}
+				currentLayerID += 1;
+				break;
+			}
+		}
+	}
+
 	public void generateMap() {
 		// instantiate level object,
 		// get player/enemy/wall objects in the scene
 
 		level = levels[0];
 		enemies.Clear();
-		Enemy[] enemyList = level.transform.GetComponentsInChildren<Enemy>();
-		for (int i=0; i<enemyList.Length; ++i) {
-			enemies.Add(enemyList[i]);
-		}
 
 		GameObject pO = Instantiate(playerObj);
 		pO.transform.parent = transform;
-		pO.transform.localPosition = new Vector2();
+		pO.transform.localPosition = new Vector2(4, -8);
 		player = pO.GetComponent<Player>();
 
 		map = new List<List<Tile>>();
+		ParseTilemap();
+
+		
+		GameObject[] enemyList = GameObject.FindGameObjectsWithTag("Enemy");
+		for (int i=0; i<enemyList.Length; ++i) {
+			enemies.Add(enemyList[i].GetComponent<Enemy>());
+		}
+
 		GameObject[] walls = GameObject.FindGameObjectsWithTag("Wall");
 		foreach (GameObject wall in walls) {
 			Transform t = wall.transform;

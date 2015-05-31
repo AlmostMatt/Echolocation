@@ -5,7 +5,6 @@ public class Player : MonoBehaviour, Actor {
 	private int ECHO = 0;
 	private int ATTACK = 1;
 
-	public GameObject echoObj;
 	public GameObject explosionObj;
 
 	private ActionMap actionMap;
@@ -70,16 +69,7 @@ public class Player : MonoBehaviour, Actor {
 	private void echolocate() {
 		if (actionMap.ready(ECHO)) {
 			actionMap.use(ECHO, null);
-			int numP = 64;
-			for (int n =0; n<numP; ++n) {
-				float a = n * 2 * Mathf.PI / numP;
-				float echospeed = 7f;
-				GameObject echoParticle = Instantiate(echoObj);
-				echoParticle.transform.position = transform.position;
-				EchoParticle echo = echoParticle.GetComponent<EchoParticle>();
-				echo.init(a, 2 * Mathf.PI / numP, echospeed);
-				Scene.get().addEcho(echo);
-			}
+			Scene.echo(transform.position);
 		}
 	}
 

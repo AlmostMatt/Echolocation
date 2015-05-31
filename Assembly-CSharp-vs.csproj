@@ -46,10 +46,14 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\PolCPP-unitmx-2dfc2daa10bd\Code\Layer.cs" />
+     <Compile Include="Assets\PolCPP-unitmx-2dfc2daa10bd\Code\TileMap.cs" />
+     <Compile Include="Assets\PolCPP-unitmx-2dfc2daa10bd\Code\TileSet.cs" />
      <Compile Include="Assets\src\Actions\Ability.cs" />
      <Compile Include="Assets\src\Actions\ActionMap.cs" />
      <Compile Include="Assets\src\DataStructures\RandomSet.cs" />
      <Compile Include="Assets\src\EchoParticle.cs" />
+     <Compile Include="Assets\src\Emitter.cs" />
      <Compile Include="Assets\src\Enemy.cs" />
      <Compile Include="Assets\src\Map.cs" />
      <Compile Include="Assets\src\Player.cs" />
@@ -57,6 +61,9 @@
      <Compile Include="Assets\src\Statuses\Status.cs" />
      <Compile Include="Assets\src\Statuses\StatusMap.cs" />
      <Compile Include="Assets\src\Steering.cs" />
+     <None Include="Assets\PolCPP-unitmx-2dfc2daa10bd\Example Assets\ExMap.xml" />
+     <None Include="Assets\PolCPP-unitmx-2dfc2daa10bd\Example Assets\ExMapPadEx.xml" />
+     <None Include="Assets\maps\map1.xml" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

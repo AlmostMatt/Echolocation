@@ -1,16 +1,15 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\src\Map.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\src\Enemy.cs">
     <Files>
-      <File FileName="Assets\src\Player.cs" Line="76" Column="24" />
-      <File FileName="Assets\src\Actions\ActionMap.cs" Line="1" Column="1" />
-      <File FileName="Assets\src\Actions\Ability.cs" Line="1" Column="1" />
-      <File FileName="Assets\src\Map.cs" Line="35" Column="33" />
-      <File FileName="Assets\src\Scene.cs" Line="78" Column="28" />
-      <File FileName="Assets\src\EchoParticle.cs" Line="46" Column="1" />
-      <File FileName="Assets\src\Statuses\Status.cs" Line="1" Column="1" />
-      <File FileName="Assets\src\Enemy.cs" Line="16" Column="20" />
-      <File FileName="Assets\src\Steering.cs" Line="1" Column="1" />
+      <File FileName="Assets\PolCPP-unitmx-2dfc2daa10bd\Code\TileMap.cs" Line="10" Column="19" />
+      <File FileName="Assets\src\Player.cs" Line="15" Column="16" />
+      <File FileName="Assets\src\Map.cs" Line="148" Column="6" />
+      <File FileName="Assets\src\Scene.cs" Line="25" Column="30" />
+      <File FileName="Assets\src\EchoParticle.cs" Line="35" Column="17" />
+      <File FileName="Assets\src\Enemy.cs" Line="21" Column="85" />
+      <File FileName="Assets\PolCPP-unitmx-2dfc2daa10bd\Code\Layer.cs" Line="43" Column="13" />
+      <File FileName="Assets\src\Emitter.cs" Line="18" Column="6" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

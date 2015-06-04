@@ -6,10 +6,15 @@ public class HUD : MonoBehaviour {
 	public Text helpText;
 	public CanvasGroup helpGroup;
 	public CanvasGroup damagedImage;
+	
+	public Image heart1;
+	public Image heart2;
+	public Image heart3;
 
 	private static HUD singleton;
 	private float damageAlpha = 0f;
 	private float textDuration = 0f;
+	private static Color darkHeart = new Color(0.4f, 0.4f, 0.4f);
 
 	// Use this for initialization
 	void Start () {
@@ -25,6 +30,12 @@ public class HUD : MonoBehaviour {
 		if (textDuration <= 0f) {
 			helpGroup.alpha = Mathf.Max(0f, helpGroup.alpha - Time.deltaTime);
 		}
+	}
+
+	public static void setHealth(float hp) {
+		singleton.heart1.color = hp > 0f ? Color.white : darkHeart;
+		singleton.heart2.color = hp > 1f ? Color.white : darkHeart;
+		singleton.heart3.color = hp > 2f ? Color.white : darkHeart;
 	}
 	
 	public static void takeDamage() {

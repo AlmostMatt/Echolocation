@@ -23,7 +23,7 @@ public class Enemy : Steering {
 	void Update () {
 		Player player = Scene.getPlayer();
 
-		float VISION = 12f;
+		float VISION = 13f;
 		Vector2 offset =(player.transform.position - transform.position);
 		float dist = offset.sqrMagnitude;
 		if (!player.safe && dist < VISION * VISION) {

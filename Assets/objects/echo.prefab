@@ -9,7 +9,6 @@ GameObject:
   m_Component:
   - 4: {fileID: 482214}
   - 33: {fileID: 3339198}
-  - 64: {fileID: 6403486}
   - 23: {fileID: 2322198}
   m_Layer: 0
   m_Name: quad
@@ -120,18 +119,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: .100000001
---- !u!64 &6403486
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 189530}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &11457350
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -150,6 +137,9 @@ MonoBehaviour:
   arc: 0
   speed: 0
   fadeTime: 0
+  origin: {x: 0, y: 0, z: 0}
+  successor: {fileID: 0}
+  precedent: {fileID: 0}
   col: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1001 &100100000
 Prefab:

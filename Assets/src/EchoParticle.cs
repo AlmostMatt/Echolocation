@@ -29,10 +29,10 @@ public class EchoParticle : MonoBehaviour {
 	//private static Color normalCol = new Color(1f, 1f, 1f, 0.25f);
 	//private static Color dirtCol = new Color(1f, 0.7f, 0.1f, 0.25f);
 	//private static Color safeCol = new Color(0.4f, 1f, 0.4f, 0.25f);
-	private static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f);
-	private static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f);
-	private static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f);
-	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f);
+	private static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f); // reddish
+	private static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f); // yellowish
+	private static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f); // orangish
+	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f); // blueish
 
 	private Rigidbody2D rb;
 
@@ -209,13 +209,11 @@ public class EchoParticle : MonoBehaviour {
 		if (t != Tile.WALL && radius < maxRad && newcol != col && collisionRadius == -1f) {
 			split(newcol);
 			maxRad = radius;
-			rb.velocity = new Vector3();
-			collisionRadius = radius;
+			stop();
 		}
 
-		if (radius >= maxRad && collisionRadius == -1f) {
-			collisionRadius = radius;
-			rb.velocity = new Vector3();
+		if (radius >= maxRad) {
+		    stop();
 		}
 	}
 
@@ -224,8 +222,14 @@ public class EchoParticle : MonoBehaviour {
 		Destroy(gameObject);
 	}
 
+	void stop() {
+		if (collisionRadius == -1f) {
+			collisionRadius = radius;
+			rb.velocity = new Vector3();
+		}
+	}
+
 	void OnTriggerEnter2D(Collider2D other) {
-		collisionRadius = radius;
-		rb.velocity = new Vector3();
+		stop();
 	}
 }

@@ -14,6 +14,7 @@ public class Scene : MonoBehaviour {
 	public List<Enemy> enemies;
 
 	private Texture2D shadowMask;
+	private Transform cam;
 
 	void Awake() {
 		map = GetComponent<Map>();
@@ -45,6 +46,8 @@ public class Scene : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		cam = Camera.main.transform;
+		cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
 	}
 	
 	// Update is called once per frame
@@ -60,11 +63,23 @@ public class Scene : MonoBehaviour {
 			}
 		}
 		// camera to follow the player
-		Transform cam = Camera.main.transform;
-		cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
+		Vector2 offset = player.transform.position - cam.position;
+		float camspd = 20f * Time.deltaTime;
+		if (offset.sqrMagnitude > camspd * camspd) {
+			cam.position += camspd * (Vector3) offset.normalized;
+		} else {
+			cam.position = new Vector3(player.transform.position.x, player.transform.position.y, cam.position.z);
+		}
+
+		if (Input.GetKeyDown(KeyCode.Escape)) {
+			Application.Quit();
+		}
+		if (Input.GetKeyDown(KeyCode.R)) {
+			Application.LoadLevel(Application.loadedLevel);
+		}
 	}
 
-	public static void echo(Vector3 echoPos, float echoSpeed=7f, float range=15f, float fadeTime=0.7f, int numP=48) {
+	public static void echo(Vector3 echoPos, float echoSpeed=8f, float range=15f, float fadeTime=0.7f, int numP=64) {
 		for (int n =0; n<numP; ++n) {
 		//int n = 0;
 			float a = n * 2 * Mathf.PI / numP;

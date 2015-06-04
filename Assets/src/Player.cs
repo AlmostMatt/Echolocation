@@ -86,6 +86,7 @@ public class Player : MonoBehaviour, Actor {
 		safe = (Scene.getTile(transform.position) == Tile.SAFE);
 		if (safe) {
 			health = maxHealth;
+			HUD.setHealth(health);
 			// respawn at center of tile
 			respawnPoint = Scene.get ().map.mapToGame(Scene.get ().map.gameToMap(transform.position));
 		}
@@ -93,11 +94,11 @@ public class Player : MonoBehaviour, Actor {
 		
 		if (statusMap.has(State.DEAD)) {
 			HUD.setText("", 0f);
-		} else if (!hasMovedHorizontally || !hasMovedVertically) {
-			HUD.setText("Move with WASD", 1f);
+		} else if (!hasMovedHorizontally && !hasMovedVertically) {
+			HUD.setText("Move with WASD", 0.1f);
 		} else if (shotsFired < 2) {
 			if (!HUD.hasText()) {
-				HUD.setText("Shoot with the mouse", 1f);
+				HUD.setText("Shoot with the mouse", 0.1f);
 			}
 		} else if (!dangerMessaged || !safetyMessaged) {
 			if (!dangerMessaged && !HUD.hasText() && !safe) {
@@ -105,7 +106,7 @@ public class Player : MonoBehaviour, Actor {
 				dangerMessaged = true;
 			}
 			if (!safetyMessaged && !HUD.hasText() && safe) {
-				HUD.setText("These gray areas are safe.", 3f);
+				HUD.setText("These blue areas are safe.", 3f);
 				safetyMessaged = true;
 			}
 		}
@@ -148,6 +149,7 @@ public class Player : MonoBehaviour, Actor {
 			statusMap.add (new Status(State.INVULNERABLE), 0.8f);
 			HUD.takeDamage();
 			health -= amt;
+			HUD.setHealth(health);
 		}
 		if (health <= 0f) {
 			statusMap.add(new Status(State.DEAD), 1000f);
@@ -159,6 +161,8 @@ public class Player : MonoBehaviour, Actor {
 
 	private void respawn() {
 		health = maxHealth;
+		HUD.setHealth(health);
+
 		transform.position = respawnPoint;
 		foreach (Enemy e in Scene.getEnemies()) {
 			e.reset();
@@ -183,8 +187,10 @@ public class Player : MonoBehaviour, Actor {
 		while (angleDiff > Mathf.PI) {
 			angleDiff -= 2 * Mathf.PI;
 		}
-		if (Mathf.Abs(angleDiff) >= turnAmount) {
+		if (angleDiff >= turnAmount) {
 			facingAngle += turnAmount;
+		} else if (angleDiff <= -turnAmount) {
+			facingAngle -= turnAmount;
 		} else {
 			facingAngle = desiredAngle;
 		}

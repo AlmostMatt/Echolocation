@@ -26,13 +26,6 @@ public class EchoParticle : MonoBehaviour {
 	private bool hasSuccessor = false;
 
 	public Color col;
-	//private static Color normalCol = new Color(1f, 1f, 1f, 0.25f);
-	//private static Color dirtCol = new Color(1f, 0.7f, 0.1f, 0.25f);
-	//private static Color safeCol = new Color(0.4f, 1f, 0.4f, 0.25f);
-	private static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f); // reddish
-	private static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f); // yellowish
-	private static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f); // orangish
-	private static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f); // blueish
 
 	private Rigidbody2D rb;
 
@@ -47,7 +40,7 @@ public class EchoParticle : MonoBehaviour {
 		Rigidbody2D echoRB = transform.GetComponent<Rigidbody2D>();
 		echoRB.velocity = v;
 		maxRad = range;
-		Color initCol = getTileColor(Scene.getTile(transform.position));
+		Color initCol = Map.getTileColor(Scene.getTile(transform.position));
 		col = initCol;
 		meshRenderer.material.SetColor("_TintColor", initCol);
 		origin = transform.position;
@@ -135,21 +128,6 @@ public class EchoParticle : MonoBehaviour {
 		}
 	}
 
-	public static Color getTileColor(Tile t) {
-		//DIRT=0, SAND=8, STONE=2
-		switch (t) {
-		case Tile.SAFE:
-			return safeCol;
-		case Tile.SAND:
-			return sandCol;
-		case Tile.STONE:
-			return stoneCol;
-		case Tile.DIRT:
-		default:
-			return normalCol;
-		}
-	}
-
 	private void split(Color newcol) {
 		hasSuccessor = true;
 		GameObject newEcho = Instantiate(Scene.get ().echoObj);
@@ -205,7 +183,7 @@ public class EchoParticle : MonoBehaviour {
 		radius += Time.fixedDeltaTime * speed;
 		
 		Tile t = Scene.getTile(transform.position);
-		Color newcol = getTileColor(t);
+		Color newcol = Map.getTileColor(t);
 		if (t != Tile.WALL && radius < maxRad && newcol != col && collisionRadius == -1f) {
 			split(newcol);
 			maxRad = radius;

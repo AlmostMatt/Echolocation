@@ -12,11 +12,14 @@ public class Map : MonoBehaviour {
 	public GameObject wallObj;
 	public GameObject playerObj;
 	public GameObject enemyObj;
-	public GameObject emitterObj;
+	public GameObject minimapTileObj;
 
-	public GameObject[] levels;
+	public Camera minimapCamera;
 
-	private GameObject level;
+	public static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f); // reddish
+	public static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f); // yellowish
+	public static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f); // orangish
+	public static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f); // blueish
 
     // grid size
 	private int w = 20;
@@ -84,6 +87,11 @@ public class Map : MonoBehaviour {
 						player = obj.GetComponent<Player>();
 					}
 				}
+				GameObject minimapTile = Instantiate(minimapTileObj);
+				minimapTile.transform.position = tilePos;
+				Color col = Map.getTileColor(getTile(tilePos));
+				col.a = 1f;
+				minimapTile.GetComponent<SpriteRenderer>().color = col;
 				dataIndex++;
 			}
 		}
@@ -147,7 +155,6 @@ public class Map : MonoBehaviour {
 		// instantiate level object,
 		// get player/enemy/wall objects in the scene
 
-		level = levels[0];
 		enemies.Clear();
 
 		ParseTilemap();
@@ -167,6 +174,11 @@ public class Map : MonoBehaviour {
 				}
 			}
 		}
+
+		//minimapCamera.aspect = 1f;
+		minimapCamera.orthographicSize = h/2;
+		minimapCamera.rect = new Rect(0.70f, 0.55f, 0.25f, 0.4f);
+		minimapCamera.transform.position = new Vector3(w/2, h/2, -20);
 
 		/*
 		map = new List<List<Tile>>();
@@ -335,5 +347,19 @@ public class Map : MonoBehaviour {
 		}
 		return false;
 	}
-
+	
+	public static Color getTileColor(Tile t) {
+		//DIRT=0, SAND=8, STONE=2
+		switch (t) {
+		case Tile.SAFE:
+			return safeCol;
+		case Tile.SAND:
+			return sandCol;
+		case Tile.STONE:
+			return stoneCol;
+		case Tile.DIRT:
+		default:
+			return normalCol;
+		}
+	}
 }

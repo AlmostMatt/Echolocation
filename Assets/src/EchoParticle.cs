@@ -192,6 +192,7 @@ public class EchoParticle : MonoBehaviour {
 		
 		GameObject minimapTile = Scene.getMinimapTile(transform.position);
 		if (minimapTile != null && collisionRadius == -1) {
+			// TODO: update collide() so that it colors the wall (and colors the ground tile for enemies)
 			minimapTile.active = true;
 		}
 		Tile t = Scene.getTile(transform.position);

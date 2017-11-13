@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 public class Scene : MonoBehaviour {
 
-	public GameObject echoObj;
+	public GameObject echoColliderObject;
+	public GameObject echoMeshObject;
 
 	public Map map;
 	public List<EchoParticle> echos;
@@ -53,6 +54,7 @@ public class Scene : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		for (int i = echos.Count - 1; i >= 0; --i) {
+			// TODO: fix this code (echoes clean themselves up, and split echoes aren't added to this)
 			if (echos[i].dead) {
 				echos.Remove(echos[i]);
 			}
@@ -80,13 +82,22 @@ public class Scene : MonoBehaviour {
 	}
 
 	public static void echo(Vector3 echoPos, float echoSpeed=8f, float range=15f, float fadeTime=0.7f, int numP=64) {
+		// Force z to -6 so that echos appear in front of other objects
+		echoPos.z = -6;
+		// TODO: fix bug where particles are sometimes not created or rendered on lower quality settings.
+		// This is 100% related to quality settings - particle raycast budget
+		// Each echo creates 64 particles that have colliders. if budget is 64 I get 1 echo. if 256 I get 4 echos.
+		// Note: this seems to have gone away when I separated echo collider and mesh
+		//   This probably means that it no longer considers the collider to be a particle.
+		// TODO: fix the phsyics bug that occurs on low quality settings (player collides with something)
 		for (int n =0; n<numP; ++n) {
 		//int n = 0;
-			float a = n * 2 * Mathf.PI / numP;
-			GameObject echoParticle = Instantiate(singleton.echoObj);
-			echoParticle.transform.position = echoPos;
-			EchoParticle echo = echoParticle.GetComponent<EchoParticle>();
-			echo.init(a, 2 * Mathf.PI / numP, echoSpeed, range, fadeTime);
+			float rotation = n * 2 * Mathf.PI / numP;
+			float arc = 2 * Mathf.PI / numP;
+			GameObject echoCollider = Instantiate(singleton.echoColliderObject);
+			GameObject echoMesh = Instantiate(singleton.echoMeshObject);
+			EchoParticle echo = echoCollider.GetComponent<EchoParticle>();
+			echo.init(echoPos, echoMesh, rotation, arc, echoSpeed, range, fadeTime);
 			get().echos.Add(echo);
 		}
 	}
@@ -111,6 +122,11 @@ public class Scene : MonoBehaviour {
 	public static Tile getTile(Vector2 gamePos) {
 		Map map = get().map;
 		return map.getTile(map.gameToMap(gamePos));
+	}
+
+	public static GameObject getMinimapTile(Vector2 gamePos) {
+		Map map = get().map;
+		return map.getMinimapTile(map.gameToMap(gamePos));
 	}
 
 	public static bool tileRaycast(Vector2 gamePos1, Vector2 gamePos2, Tile hitTile) {

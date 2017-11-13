@@ -5,11 +5,11 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 482214}
-  - 33: {fileID: 3339198}
-  - 23: {fileID: 2322198}
+  - component: {fileID: 482214}
+  - component: {fileID: 3339198}
+  - component: {fileID: 2322198}
   m_Layer: 0
   m_Name: quad
   m_TagString: Untagged
@@ -22,14 +22,14 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 425554}
-  - 50: {fileID: 5024206}
-  - 114: {fileID: 11457350}
-  - 58: {fileID: 5842906}
+  - component: {fileID: 425554}
+  - component: {fileID: 5024206}
+  - component: {fileID: 11457350}
+  - component: {fileID: 5842906}
   m_Layer: 8
-  m_Name: echo
+  m_Name: echo (old)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -42,12 +42,13 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 199486}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.68361473, y: -25.8715916, z: 0}
+  m_LocalPosition: {x: -6.6836147, y: -25.871592, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 482214}
   m_Father: {fileID: 0}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &482214
 Transform:
   m_ObjectHideFlags: 1
@@ -60,6 +61,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 425554}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &2322198
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -69,17 +71,24 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_Materials:
   - {fileID: 2100000, guid: c5fea1c302d0610429c78977b2f851c5, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
   m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
   m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_AutoUVMaxDistance: .5
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
@@ -93,19 +102,24 @@ MeshFilter:
   m_Mesh: {fileID: 0}
 --- !u!50 &5024206
 Rigidbody2D:
+  serializedVersion: 4
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 199486}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: .0500000007
+  m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_FixedAngle: 0
-  m_IsKinematic: 0
+  m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!58 &5842906
 CircleCollider2D:
   m_ObjectHideFlags: 1
@@ -113,12 +127,13 @@ CircleCollider2D:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 199486}
   m_Enabled: 1
+  m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: .100000001
+  m_Radius: 0.1
 --- !u!114 &11457350
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -136,11 +151,12 @@ MonoBehaviour:
   radius: 0
   arc: 0
   speed: 0
+  collisionRadius: -1
   fadeTime: 0
-  origin: {x: 0, y: 0, z: 0}
   successor: {fileID: 0}
   precedent: {fileID: 0}
-  col: {r: 0, g: 0, b: 0, a: 0}
+  meshObject: {fileID: 0}
+  currentColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

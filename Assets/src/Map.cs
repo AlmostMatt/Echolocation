@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Xml;
 using System.IO;
 using System.Collections;
@@ -7,6 +8,14 @@ using System.Collections.Generic;
 public enum Tile {DIRT=0, SAND=8, STONE=2, WALL=1, SAFE=7};
 
 public class Map : MonoBehaviour {
+	private static Dictionary<Tile, Color> TILE_COLORS = new Dictionary<Tile, Color>{
+		{Tile.DIRT, new Color(0.275f, 0.129f, 0.082f, 0.25f)},  //reddish
+		{Tile.SAND, new Color(0.369f, 0.216f, 0.086f, 0.25f)},  // yellowish
+		{Tile.STONE,new Color(0.369f, 0.356f, 0.126f, 0.25f)}, // orangish
+		{Tile.SAFE, new Color(0.23f, 0.27f, 0.26f, 0.25f)},     // blueish
+		{Tile.WALL, new Color(0f, 0f, 0f, 0.25f)},     // blueish
+	};
+
 	public TextAsset tilemap;
 
 	public GameObject wallObj;
@@ -16,17 +25,13 @@ public class Map : MonoBehaviour {
 
 	public Camera minimapCamera;
 
-	public static Color normalCol = new Color(0.275f, 0.129f, 0.082f, 0.25f); // reddish
-	public static Color sandCol = new Color(0.369f, 0.216f, 0.086f, 0.25f); // yellowish
-	public static Color stoneCol = new Color(0.369f, 0.356f, 0.126f, 0.25f); // orangish
-	public static Color safeCol = new Color(0.23f, 0.27f, 0.26f, 0.25f); // blueish
-
     // grid size
 	private int w = 20;
     private int h = 20;
     private float tileSize = 1f;
-	
+
 	private List<List<Tile>> map;
+	private List<List<GameObject>> minimapTiles;
 	private Player player;
 	private List<Enemy> enemies = new List<Enemy>();
 
@@ -41,57 +46,42 @@ public class Map : MonoBehaviour {
 
 	private void  ParseLayer (TileSet tileset, string[] data, int currentLayerID, int width, int height)
 	{
-		while (map.Count <= width) {
+		Dictionary<int, GameObject> objectMap = new Dictionary<int, GameObject>() {
+			{1, wallObj},
+			{4, enemyObj},
+			{5, playerObj},
+		};
+		// Make the map and minimapTile arrays larger if necessary.
+		while (map.Count < width) {
 			map.Add(new List<Tile>());
+			minimapTiles.Add(new List<GameObject>());
 		}
-		// assuming all layers have the same size
+		for (int x = 0; x < width; x++) {
+			while (map[x].Count < height) {
+				map[x].Add(Tile.DIRT);
+				minimapTiles[x].Add(null);
+			}
+		}
+		// the world width/height is the largest of the layer widths/heights
 		w = Mathf.Max (w,width);
 		h = Mathf.Max (h,height);
 
 		int dataIndex = 0;
 		//_currentLayerID = _currentLayerID * 10;
 		float z = currentLayerID * -10;
-		for (int i = 1; i <= height; i++) {
-			for (int j = 1; j <= width; j++) {
-				while (map[j].Count <= height) {
-					map[j].Add(Tile.DIRT);
-				}
-				Vector2 tilePos = new Vector2(j, i);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
 				int dataValue = int.Parse(data [dataIndex].ToString ().Trim ());
-				if (dataValue == 7) {
-					setTile(tilePos, Tile.SAFE);
-				} else if (dataValue == 2) {
-					setTile(tilePos, Tile.STONE);
-				} else if (dataValue == 8) {
-					setTile(tilePos, Tile.SAND);
-				} else if (   dataValue == 1
-				           || dataValue == 5
-				           || dataValue == 4
-				           ) {
-					GameObject objectType = wallObj;
-					switch (dataValue) {
-					case 1:
-						objectType = wallObj;
-						setTile(tilePos, Tile.WALL);
-						break;
-					case 4:
-						objectType = enemyObj;
-						break;
-					case 5:
-						objectType = playerObj;
-						break;
-					}
-					GameObject obj = Instantiate(objectType);
-					obj.transform.position = mapToGame(tilePos);
-					if (dataValue == 5) {
+				if (Enum.IsDefined(typeof(Tile), dataValue)) {
+					map[x][y] = (Tile)dataValue;
+				}
+				if (objectMap .ContainsKey(dataValue)) {
+					GameObject obj = Instantiate(objectMap [dataValue]);
+					obj.transform.position = mapToGame(new Vector2(x, y));
+					if (obj.GetComponent<Player>() != null) {
 						player = obj.GetComponent<Player>();
 					}
 				}
-				GameObject minimapTile = Instantiate(minimapTileObj);
-				minimapTile.transform.position = tilePos;
-				Color col = Map.getTileColor(getTile(tilePos));
-				col.a = 1f;
-				minimapTile.GetComponent<SpriteRenderer>().color = col;
 				dataIndex++;
 			}
 		}
@@ -101,6 +91,7 @@ public class Map : MonoBehaviour {
 	{
 		/* MODIFIED FROM UNITMX, NOT ORIGINALLY WRITTEN BY ME (some guy names PolCPP)*/
 		map = new List<List<Tile>>();
+		minimapTiles = new List<List<GameObject>>();
 
 		// We use the currentLayer ID to order them on the Z axis.
 		int currentLayerID = 0;
@@ -149,6 +140,23 @@ public class Map : MonoBehaviour {
 				break;
 			}
 		}
+		// Only populate minimap tiles after all of the layers of the map have been parsed.
+		for (int x = -1; x <= w; x++) {
+			for (int y = -1; y <= h; y++) {
+				GameObject minimapTile = Instantiate(minimapTileObj);
+				minimapTile.transform.position = new Vector2(x, y+1);
+				// Put a gray border around the minimap
+				Color col = new Color(0.5f, 0.5f, 0.5f, 1f);
+				if (x > -1 && y > -1 && x < w && y < h) {
+					minimapTile.active = false;
+					col = getTileColor(getTile(x, y));
+					col.a = 1f;
+					minimapTiles[x][y] = minimapTile;
+				}
+				// the minimap tile will only be activated once an echo particle reaches it.
+				minimapTile.GetComponent<SpriteRenderer>().color = col;
+			}
+		}
 	}
 
 	public void generateMap() {
@@ -156,7 +164,6 @@ public class Map : MonoBehaviour {
 		// get player/enemy/wall objects in the scene
 
 		enemies.Clear();
-
 		ParseTilemap();
 
 		
@@ -170,13 +177,13 @@ public class Map : MonoBehaviour {
 			Transform t = wall.transform;
 			for (int x=0; x<t.localScale.x; ++x) {
 				for (int y =0; y<t.localScale.y; ++y) {
-
+					// ??? Why do I have this loop
 				}
 			}
 		}
 
 		//minimapCamera.aspect = 1f;
-		minimapCamera.orthographicSize = h/2;
+		minimapCamera.orthographicSize = (Mathf.Max(w,h)+2)/2;
 		minimapCamera.rect = new Rect(0.70f, 0.55f, 0.25f, 0.4f);
 		minimapCamera.transform.position = new Vector3(w/2, h/2, -20);
 
@@ -246,25 +253,31 @@ public class Map : MonoBehaviour {
 		mapPos.y = Mathf.RoundToInt(mapPos.y);
 		return mapPos;
 	}
-	
+
 	// assumes map coordinates, not game
 	public Tile getTile(Vector2 coord) {
 		return getTile((int) coord.x, (int) coord.y);
 	}
-	
+
 	// assumes map coordinates, not game
 	public Tile getTile(int x, int y) {
-		if (x >= 0 && x < map.Count && y >= 0 && y < map[x].Count) {
+		if (x >= 0 && x < w && y >= 0 && y < h) {
 			return map[x][y];
 		} else {
 			return Tile.WALL; // ideally this doesn't come up much. neighbours don't handle it either.
 		}
 	}
-    
-    private void setTile(Vector2 coord, Tile value) {
-        map[(int) coord.x][(int) coord.y] = value;
+
+	// assumes map coordinates, not game
+	public GameObject getMinimapTile(Vector2 coord) {
+		int x = (int) coord.x;
+		int y = (int) coord.y;
+		if (x >= 0 && x < w && y >= 0 && y < h) {
+			return minimapTiles[x][y];
+		}
+		return null;
 	}
-	
+
 	public bool isWalkable(Tile tile) {
 		// consider buildings water for now since they are where boats spawn
 		return tile != Tile.WALL;
@@ -349,17 +362,6 @@ public class Map : MonoBehaviour {
 	}
 	
 	public static Color getTileColor(Tile t) {
-		//DIRT=0, SAND=8, STONE=2
-		switch (t) {
-		case Tile.SAFE:
-			return safeCol;
-		case Tile.SAND:
-			return sandCol;
-		case Tile.STONE:
-			return stoneCol;
-		case Tile.DIRT:
-		default:
-			return normalCol;
-		}
+		return TILE_COLORS[t];
 	}
 }

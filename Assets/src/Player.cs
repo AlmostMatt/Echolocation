@@ -36,7 +36,7 @@ public class Player : MonoBehaviour, Actor {
 		statusMap = new StatusMap(this);
 		actionMap = new ActionMap(this);
 		actionMap.add(ECHO, new Ability(0.5f));
-		actionMap.add(ATTACK, new Ability(0.3f));
+		actionMap.add(ATTACK, new Ability(0.2f));
 		rb = GetComponent<Rigidbody2D>();
 		respawnPoint = transform.position;
 		gun = transform.FindChild("gun");

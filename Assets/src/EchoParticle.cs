@@ -191,7 +191,7 @@ public class EchoParticle : MonoBehaviour {
 		radius += Time.fixedDeltaTime * speed;
 		
 		GameObject minimapTile = Scene.getMinimapTile(transform.position);
-		if (minimapTile != null && collisionRadius != -1) {
+		if (minimapTile != null && collisionRadius == -1) {
 			minimapTile.active = true;
 		}
 		Tile t = Scene.getTile(transform.position);
